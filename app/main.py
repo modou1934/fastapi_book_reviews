@@ -3,10 +3,19 @@ from fastapi.exceptions import HTTPException
 from typing import Optional, List
 from app.routers import book
 from .schemas import *
+from contextlib import asynccontextmanager
+from app.db.main import engine
+from app.db.main import init_db
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+    await engine.dispose()
 
 version = "v1"
-app = FastAPI(title="Bookly",version=version,description="Rest API fo book review web service")
+app = FastAPI(title="Bookly",version=version,description="Rest API fo book review web service",lifespan=lifespan)
 app.include_router(book.router,prefix=f"/api/{version}/books",tags=["books"])
 
 
